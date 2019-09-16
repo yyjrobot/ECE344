@@ -17,7 +17,7 @@ void copy_file(const char* to,const char* from){
     if (fd_from < 0){
         syserror(open,from);
     }
-    fd_to = creat(to, O_WRONLY);//create a file with WRITE ONLY
+    fd_to = creat(to, O_RDWR);//create a file with WRITE ONLY
     if (fd_to < 0){
         syserror(creat,to);
     }
@@ -54,15 +54,17 @@ void copy_file(const char* to,const char* from){
 }
 
 void copy_dir(const char* to,const char* from){
+    
+
     //if no dir exist, create one
     struct stat tmp;
     stat(from, &tmp);//read the source dir info
+
     if(opendir(to)==NULL){
         int mkdir_result=mkdir(to,0777);
         if (mkdir_result<0){
             syserror(mkdir,to);
         }
-        chmod (to,tmp.st_mode);
     }
     
     DIR *pdir_from;
@@ -102,16 +104,22 @@ void copy_dir(const char* to,const char* from){
             strcat(path_to,new_dirent->d_name);
             
             if (S_ISREG(tmp.st_mode)){
-                printf("this is file\n");
+                //printf("this is file\n");
                 copy_file(path_to,dirent_path_from);
             }
-            else {
-                printf("this is dir\n");
+            else if(S_ISDIR(tmp.st_mode)){
+                //printf("this is dir\n");
+                if (opendir(path_to)!=NULL){
+                    syserror(mkdir,path_to);
+                }
                 copy_dir(path_to,dirent_path_from);
             }
         }   
 
     }
+
+    stat(from, &tmp);//read the source dir info
+    chmod (to,tmp.st_mode);
 
     free(path_to);
     int close_source_result;
@@ -140,6 +148,14 @@ main(int argc, char *argv[])
     to = (char*) malloc(sizeof(char)*strlen(argv[2])+1);
 	strcpy(from,argv[1]);
 	strcpy(to,argv[2]);
+
+    if(opendir(to)!=NULL){
+        int mkdir_result=mkdir(to,0777);
+        if (mkdir_result<0){
+            syserror(mkdir,to);
+        }
+    }
+
     copy_dir(to,from);
     free(from);
     free(to);
