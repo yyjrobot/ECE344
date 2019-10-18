@@ -66,14 +66,15 @@ void que_init(que_node **any_head) {
 }
 
 void que_add(que_node **any_head, Tid id) {
-    int enabled = interrupts_set(0);
+    //int enabled = interrupts_set(0);
     //create new node
+    assert(!interrupts_enabled());
     que_node *new_node = (que_node*) malloc(sizeof (que_node));
     new_node->id = id;
     new_node->next = NULL;
     if (*any_head == NULL) {//nothing in the que
         *any_head = new_node;
-        interrupts_set(enabled);
+        //interrupts_set(enabled);
         return;
     } else {
         que_node *tmp = *any_head; //tmp->whatever head is pointing to
@@ -81,36 +82,37 @@ void que_add(que_node **any_head, Tid id) {
             tmp = tmp->next;
         }
         tmp->next = new_node;
-        interrupts_set(enabled);
+        //interrupts_set(enabled);
         return;
     }
 }
 
 void que_pop_head(que_node **any_head) {
-    int enabled = interrupts_set(0);
-
+    //int enabled = interrupts_set(0);
+ assert(!interrupts_enabled());
     if (*any_head == NULL) {
-        interrupts_set(enabled);
+        //interrupts_set(enabled);
         return;
     } else {
         que_node *tmp = *any_head;
         *any_head = tmp->next;
         free(tmp);
         tmp = NULL;
-        interrupts_set(enabled);
+        //interrupts_set(enabled);
         return;
     }
 }
 
 void que_pop_given(que_node **any_head, Tid id) {
-    int enabled = interrupts_set(0);
+    //int enabled = interrupts_set(0);
+     assert(!interrupts_enabled());
     que_node *tmp = *any_head;
     if (tmp == NULL) {//que is empty
         assert(0);
     }
     if (tmp->id == id) {
         que_pop_head(any_head);
-        interrupts_set(enabled);
+        //interrupts_set(enabled);
         return;
     } else {
         que_node *prev;
@@ -125,7 +127,7 @@ void que_pop_given(que_node **any_head, Tid id) {
         free(tmp);
         tmp = NULL;
     }
-    interrupts_set(enabled);
+    //interrupts_set(enabled);
     return;
 }
 
@@ -635,7 +637,7 @@ lock_release(struct lock *lock) {
 //        assert(0);
 //    }
     
-    thread_wakeup(lock->wait_que,0);
+    thread_wakeup(lock->wait_que,1);
     
     lock->acquirer=THREAD_NONE;
     
