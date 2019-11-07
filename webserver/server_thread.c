@@ -2,7 +2,7 @@
 #include "server_thread.h"
 #include "common.h"
 
-#define EXPECTED_MEAN_FILE_SIZE 12288;//given by fileset function
+#define EXPECTED_MEAN_FILE_SIZE 12288//given by fileset function
 
 //prototypes
 static void do_server_request(struct server *sv, int connfd);
@@ -430,6 +430,9 @@ server_exit(struct server *sv) {
 //on failure, return -1
 
 int cache_lookup(struct server *sv, char *name) {
+    if (sv->max_cache_size<EXPECTED_MEAN_FILE_SIZE){
+        return -1;
+    }
     long pos = DJBHash(name, strlen(name)) % sv->hash_table_size;
     //if (sv->hash_table[pos].occupied == 0) {//empty position
     //return -1;
@@ -543,9 +546,9 @@ int cache_insert(struct server *sv, struct file_data *data) {
 //and then we will not do evict
 
 int cache_evict(struct server *sv, int amount_to_evict) {
-//    if (amount_to_evict > sv->max_cache_size) {
-//        return -1;
-//    } else {
+    if (amount_to_evict > sv->max_cache_size) {
+        return -1;
+    } else {
         LRU_node *tmp = LRU_tail;
 
         while (sv->available_cache < amount_to_evict && tmp != NULL) {
@@ -573,7 +576,7 @@ int cache_evict(struct server *sv, int amount_to_evict) {
         } else {
             return -1;
         }
-    //}
+    }
 }
 
 void clear_cache(struct server *sv) {
