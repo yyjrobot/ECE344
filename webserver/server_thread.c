@@ -349,8 +349,8 @@ server_init(int nr_threads, int max_requests, int max_cache_size) {
         if (max_cache_size > 0) {
             //calculate cache_table_size
             sv->available_cache = sv->max_cache_size;
-            int load_factor = sv->max_cache_size / EXPECTED_MEAN_FILE_SIZE;
-            sv->hash_table_size = load_factor * 1.5;
+            //int load_factor = sv->max_cache_size / EXPECTED_MEAN_FILE_SIZE;
+            sv->hash_table_size = 10000;
             sv->hash_table = Malloc(sizeof (struct hash_unit)*sv->hash_table_size);
             for (long i = 0; i < sv->hash_table_size; i++) {
                 sv->hash_table[i].count = 0;
@@ -430,9 +430,9 @@ server_exit(struct server *sv) {
 //on failure, return -1
 
 int cache_lookup(struct server *sv, char *name) {
-    if (sv->max_cache_size<EXPECTED_MEAN_FILE_SIZE){
-        return -1;
-    }
+    //if (sv->hash_table_size=0){
+        //return -1;
+    //}
     long pos = DJBHash(name, strlen(name)) % sv->hash_table_size;
     //if (sv->hash_table[pos].occupied == 0) {//empty position
     //return -1;
